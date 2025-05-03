@@ -3,7 +3,9 @@ body{
     margin:0;
     padding:0;
 }
-
+.temppass{
+    font-size:6px
+}
 header{
     text-align: center;
     height:5rem;
