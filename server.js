@@ -3,7 +3,7 @@ const { Pool } = require('pg');
 const bwipjs = require('bwip-js'); // Alternative barcode library
 const fs = require('fs');
 const path = require('path');
-const port = 3000;
+const PORT = 3000;
 
 require('dotenv').config();
 
@@ -146,8 +146,10 @@ app.delete('/delete-item/:id', async (req, res) => {
     }
 });
 
-app.listen(port, '0.0.0.0', () => console.log(`Server running at http://0.0.0.0:${port}`));
-
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running at http://0.0.0.0:${PORT}/index.html`);
+  });
+  
   
 // app.listen(port, () => {
 //     console.log(`Server running at http://localhost:${port}/index.html`);
