@@ -32,13 +32,13 @@ The Inventory Management System was developed to streamline the process of track
 - JavaScript (for creating an interactive and responsive user interface)
 
 ### Backend:
-- Express.js (for handling server-side logic and API development)
+- Node.js + Express.js (for handling server-side logic and API development)
 
 ### Database:
 - PostgreSQL (for storing and managing inventory data)
 
 ### Additional Features:
-- **Barcode Generation:** Using the `jsbarcode` library to create unique barcodes for each inventory item.
+- **Barcode Generation:** Using the `bwip-js` library to create unique barcodes for each inventory item.
 - **PDF Generation for Billing:** Using the `jspdf` library to create invoices.
 
 ### Development Environment:

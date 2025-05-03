@@ -1,9 +1,8 @@
 const express = require('express');
-const { Pool } = require('pg');                   
-const JsBarcode = require('jsbarcode');
-const { createCanvas } = require('canvas');
-const fs = require('fs');                              
-const path = require('path');                           
+const { Pool } = require('pg');
+const bwipjs = require('bwip-js'); // Alternative barcode library
+const fs = require('fs');
+const path = require('path');
 const port = 3000;
 
 require('dotenv').config();
@@ -63,12 +62,12 @@ app.post('/bill', async (req, res) => {
     }
 });
 
-
 const barcodeDir = path.join(__dirname, 'public', 'barcodes');
 if (!fs.existsSync(barcodeDir)) {
     fs.mkdirSync(barcodeDir, { recursive: true });
 }
 app.use(express.static(path.join(__dirname, 'public')));
+
 app.get('/items', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM invitems');
@@ -78,6 +77,7 @@ app.get('/items', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
+
 app.post('/add-item', async (req, res) => {
     const { name, price, quantity } = req.body;
     const barcodeNumber = Math.floor(100000000000 + Math.random() * 900000000000).toString();
@@ -89,11 +89,22 @@ app.post('/add-item', async (req, res) => {
         );
 
         const newItem = result.rows[0];
-        const canvas = createCanvas(300, 150);
-        JsBarcode(canvas, barcodeNumber, { format: 'CODE128' });
-        const barcodeImage = canvas.toBuffer();
-
-        fs.writeFileSync(`${barcodeDir}/${barcodeNumber}.png`, barcodeImage);
+        
+        // Generate barcode with BWIP-JS
+        bwipjs.toBuffer({
+            bcid: 'code128',       // Barcode type
+            text: barcodeNumber,   // Text to encode
+            scale: 3,              // 3x scaling factor
+            height: 10,            // Bar height, in millimeters
+            includetext: true,     // Show human-readable text
+            textxalign: 'center',  // Always good to set this
+        }, function (err, png) {
+            if (err) {
+                console.error(err);
+            } else {
+                fs.writeFileSync(`${barcodeDir}/${barcodeNumber}.png`, png);
+            }
+        });
 
         res.json(newItem);
     } catch (err) {
@@ -134,9 +145,6 @@ app.delete('/delete-item/:id', async (req, res) => {
         res.status(500).send('Server error');
     }
 });
-
-
-
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}/index.html`);
