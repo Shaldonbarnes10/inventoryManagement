@@ -146,7 +146,7 @@ app.delete('/delete-item/:id', async (req, res) => {
     }
 });
 
-app.listen(PORT, '0.0.0.0', () => console.log(`Server running at http://0.0.0.0:${PORT}`));
+app.listen(port, '0.0.0.0', () => console.log(`Server running at http://0.0.0.0:${port}`));
 
   
 // app.listen(port, () => {
