@@ -1,6 +1,6 @@
 const express = require('express');
 const { Pool } = require('pg');
-const bwipjs = require('bwip-js'); // Alternative barcode library
+const bwipjs = require('bwip-js');
 const fs = require('fs');
 const path = require('path');
 const PORT = 3000;
