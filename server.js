@@ -33,34 +33,80 @@ app.get('/invitem/:name', async (req, res) => {
     }
 });
 
+
+//before optimisation of /bill
+// app.post('/bill', async (req, res) => {
+//     const { itemName, quantity, action } = req.body;
+//     try {
+//         // Get the item from the database
+//         const result = await pool.query('SELECT * FROM invitems WHERE name = $1', [itemName]);
+//         if (result.rows.length > 0) {
+//             const item = result.rows[0];
+
+//             if (action === 'delete') {
+//                 // Delete item from inventory
+//                 await pool.query('DELETE FROM invitems WHERE name = $1', [itemName]);
+//                 res.json({ message: 'Item billed and removed from inventory' });
+//             } else if (action === 'update') {
+//                 // Update item quantity in inventory
+//                 const newQuantity = item.quantity - quantity;
+//                 await pool.query('UPDATE invitems SET quantity = $1 WHERE name = $2', [newQuantity, itemName]);
+//                 res.json({ message: 'Item billed and quantity updated' });
+//             } else {
+//                 res.status(400).json({ message: 'Invalid action' });
+//             }
+//         } else {
+//             res.status(404).json({ message: 'Item not found' });
+//         }
+//     } catch (err) {
+//         console.error('Error processing billing:', err);
+//         res.status(500).send('Server error');
+//     }
+// });
+
+
+// optimised form of /bill
 app.post('/bill', async (req, res) => {
     const { itemName, quantity, action } = req.body;
     try {
-        // Get the item from the database
-        const result = await pool.query('SELECT * FROM invitems WHERE name = $1', [itemName]);
-        if (result.rows.length > 0) {
-            const item = result.rows[0];
-
-            if (action === 'delete') {
-                // Delete item from inventory
-                await pool.query('DELETE FROM invitems WHERE name = $1', [itemName]);
-                res.json({ message: 'Item billed and removed from inventory' });
-            } else if (action === 'update') {
-                // Update item quantity in inventory
-                const newQuantity = item.quantity - quantity;
-                await pool.query('UPDATE invitems SET quantity = $1 WHERE name = $2', [newQuantity, itemName]);
-                res.json({ message: 'Item billed and quantity updated' });
+        if (action === 'delete') {
+            await pool.query(
+                'DELETE FROM invitems WHERE name = $1',
+                [itemName]
+            );
+            res.json({
+                message: 'Item billed and removed from inventory'
+            });
+        } else if (action === 'update') {
+            const result = await pool.query(
+                `UPDATE invitems
+                 SET quantity = quantity - $1
+                 WHERE name = $2
+                 AND quantity >= $1
+                 RETURNING *`,
+                [quantity, itemName]
+            );
+            if (result.rows.length > 0) {
+                res.json({
+                    message: 'Item billed and quantity updated',
+                    item: result.rows[0]
+                });
             } else {
-                res.status(400).json({ message: 'Invalid action' });
+                res.status(404).json({
+                    message: 'Item not found or insufficient quantity'
+                });
             }
         } else {
-            res.status(404).json({ message: 'Item not found' });
+            res.status(400).json({
+                message: 'Invalid action'
+            });
         }
     } catch (err) {
         console.error('Error processing billing:', err);
         res.status(500).send('Server error');
     }
 });
+
 
 const barcodeDir = path.join(__dirname, 'public', 'barcodes');
 if (!fs.existsSync(barcodeDir)) {
